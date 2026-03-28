@@ -1,119 +1,108 @@
-/* Reset básico */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-/* O seu tema hacker/sombrio */
-body { 
-    font-family: 'Courier New', monospace; 
-    background-color: #0d1117; 
-    color: #58a6ff; 
-    padding: 20px; 
-}
-
-h2 { 
-    color: #f0f6fc; 
-    text-align: center; 
-    border-bottom: 1px solid #30363d; 
-    padding-bottom: 20px; 
-    margin-bottom: 30px; 
-}
-
-/* Estrutura de colunas */
-.container {
-    display: flex; 
-    gap: 20px; 
-    max-width: 1400px; 
-    margin: 0 auto; 
-    height: 550px;
-}
-
-/* Coluna da Esquerda */
-.painel-mensagens {
-    flex: 0 0 35%;
-    background-color: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.painel-mensagens h3 {
-    color: #58a6ff;
-    font-size: 16px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #30363d;
-    padding-bottom: 10px;
-}
-
-/* Coluna da Direita (Widget) */
-.painel-widget {
-    flex: 1;
-    background-color: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 8px;
+body {
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
+    height: 100vh;
     overflow: hidden;
 }
 
-.painel-widget iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
+header h2 {
+    text-align: center;
+    color: #58a6ff;
+    margin: 5px 0 15px 0;
 }
 
-/* Badges */
-.badge {
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 11px;
-    margin-right: 8px;
-}
-.badge-rest { background-color: #238636; color: #fff; }
-.badge-mqtt { background-color: #d29922; color: #fff; }
-
-/* A SUA ANIMAÇÃO PARA OS LANCES */
-.lance { 
-    background: #0d1117; 
-    padding: 15px; 
-    margin-bottom: 10px; 
-    border-radius: 6px; 
-    border-left: 5px solid #238636;
-    color: #c9d1d9;
-    font-size: 13px;
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn { 
-    from { opacity: 0; transform: translateX(-20px); } 
-    to { opacity: 1; transform: translateX(0); } 
-}
-
-/* Efeito nas linhas do feed */
-.item-jogo {
-    cursor: pointer;
-    transition: all 0.3s;
-    padding: 10px;
-    border-radius: 5px;
+.container {
     display: flex;
+    gap: 15px;
+    height: calc(100% - 60px);
     align-items: center;
-    justify-content: space-between;
+}
+
+/* Painel lateral */
+.painel-mensagens {
+    flex: 1;
+    max-width: 320px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 10px;
+    height: 95%;
+    display: flex;
+    flex-direction: column;
+}
+
+#busca-jogo {
+    width: 100%;
+    padding: 10px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: white;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+#dados-tempo-real {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.item-jogo {
+    background: #21262d;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
 }
 
 .item-jogo:hover {
-    background: rgba(77, 166, 255, 0.1);
-    transform: translateX(5px);
-    border-left: 3px solid #4da6ff;
+    border-color: #58a6ff;
+}
+
+.times {
+    display: block;
+    font-size: 13px;
+    color: #f0f6fc;
+    margin: 5px 0;
 }
 
 .placar-feed {
-    background: #222;
-    padding: 2px 8px;
-    border-radius: 4px;
+    font-size: 22px;
     font-weight: bold;
-    color: #fff;
+    color: #58a6ff;
+}
+
+.badge {
+    font-size: 10px;
+    color: #ff4d4d;
+    font-weight: bold;
 }
 
 .hint {
     font-size: 10px;
-    color: #666;
-    text-transform: uppercase;
+    color: #8b949e;
+}
+
+/* Widget */
+.painel-widget {
+    flex: 1;
+    height: 61%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: #0d1117;
+    border-radius: 10px;
+}
+
+/* CORREÇÃO DA CAIXA PRETA */
+.painel-widget iframe {
+    width: 140%;
+    height: 100%;
+    border: none;
+    transform: scale(1.1);
+    transform-origin: center;
 }

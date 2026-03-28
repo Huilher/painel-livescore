@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Jogos ao Vivo</title>
+    <title>Painel Live - Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,47 +13,80 @@
 
 <div class="container">
     <div class="painel-mensagens">
-        <h3>⚽ Feed de Lances e Estatísticas</h3>
+        <div class="busca-container">
+            <input type="text" id="busca-jogo" placeholder="🔍 Pesquisar ID do jogo..." onkeyup="filtrarJogos()">
+        </div>
+
         <div id="dados-tempo-real">
             </div>
     </div>
 
     <div class="painel-widget">
-        <iframe 
-            src="https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=vjxm8gh51o0xr6o">
-        </iframe>
+        <iframe id="widget-3d" src="https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=vjxm8gh51o0xr6o"></iframe>
     </div>
 </div>
 
 <script>
     const painelDados = document.getElementById('dados-tempo-real');
     let socket;
-    const LIMITE_LINHAS = 50;
-    const memoriaPlacar = {}; 
+    
+    const dicionarioStatus = {
+        1: "Não Iniciado",
+        2: "1º Tempo",
+        3: "Intervalo",
+        4: "2º Tempo",
+        5: "Prorrogação",
+        7: "Pênaltis",
+        8: "Encerrado"
+    };
 
-    function carregarNoWidget(idDoJogo) {
-        const iframe = document.querySelector('.painel-widget iframe');
-        iframe.src = `https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=${idDoJogo}`;
-        console.log("⚽ Detalhando partida:", idDoJogo);
+    function filtrarJogos() {
+        const termo = document.getElementById('busca-jogo').value.toLowerCase();
+        const itens = document.querySelectorAll('.lance');
+        itens.forEach(item => {
+            item.style.display = item.innerText.toLowerCase().includes(termo) ? "block" : "none";
+        });
     }
 
-    function adicionarLinha(conteudoHtml) {
-        const divLance = document.createElement('div');
-        divLance.className = 'lance';
-        divLance.innerHTML = conteudoHtml;
-        painelDados.prepend(divLance);
+    function carregarNoWidget(id) {
+        document.getElementById('widget-3d').src = `https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=${id}`;
+    }
 
-        while (painelDados.children.length > LIMITE_LINHAS) {
-            painelDados.removeChild(painelDados.lastChild);
+    function atualizarCard(id, placar, statusTexto, corBadge) {
+        let div = document.getElementById(`jogo-${id}`);
+        
+        const conteudoCard = `
+            <div class="item-jogo" onclick="carregarNoWidget('${id}')">
+                <span class="badge" style="color:${corBadge}; font-size:11px; font-weight:bold; letter-spacing: 0.5px;">
+                    ${statusTexto.toUpperCase()}
+                </span>
+                <strong class="times-nome" style="display:block; margin:6px 0; color:#f0f6fc;">
+                    Time Casa VS Time Fora
+                </strong>
+                <div class="placar-feed" style="font-size: 22px; font-weight: bold; color: #58a6ff;">
+                    ${placar}
+                </div>
+                <span class="hint" style="font-size: 11px; color: #8b949e; display:block; margin-top:4px;">
+                    ID: ${id.substring(0,8)}... | ANALISAR 3D
+                </span>
+            </div>
+        `;
+
+        if (!div) {
+            div = document.createElement('div');
+            div.id = `jogo-${id}`;
+            div.className = 'lance';
+            div.innerHTML = conteudoCard;
+            painelDados.prepend(div);
+        } else {
+            div.innerHTML = conteudoCard;
         }
+        filtrarJogos();
     }
 
     function conectarMotor() {
+        // COLOQUE A URL DO SEU NGROK AQUI ABAIXO
         socket = new WebSocket('wss://desertic-vaughn-nonvirtuously.ngrok-free.dev');
-
-        socket.onopen = () => {
-            adicionarLinha('<span style="color: #4caf50; font-weight: bold;">✅ MOTOR DE DADOS ONLINE</span>');
-        };
 
         socket.onmessage = (event) => {
             try {
@@ -62,50 +95,22 @@
                 if (pacote.tipo === 'REST_LIVE') {
                     pacote.dados.forEach(jogo => {
                         const id = jogo.id;
-                        const casa = jogo.score?.[2]?.[0] ?? '0';
-                        const fora = jogo.score?.[3]?.[0] ?? '0';
-                        const placarAtual = `${casa} x ${fora}`;
+                        const placar = `${jogo.score?.[2]?.[0] ?? '0'} x ${jogo.score?.[3]?.[0] ?? '0'}`;
+                        
+                        // Extrai status da posição [1]
+                        const statusReal = jogo.score && jogo.score[1] ? jogo.score[1] : 0;
+                        const statusTexto = dicionarioStatus[statusReal] || "AO VIVO";
+                        const corBadge = statusReal === 8 ? "#ff5858" : "#58a6ff";
 
-                        if (!memoriaPlacar[id] || memoriaPlacar[id] !== placarAtual) {
-                            
-                            // Carrega o primeiro jogo automaticamente no início
-                            if (Object.keys(memoriaPlacar).length === 0) {
-                                carregarNoWidget(id);
-                            }
-
-                            memoriaPlacar[id] = placarAtual;
-
-                            adicionarLinha(`
-                                <div class="item-jogo" onclick="carregarNoWidget('${id}')">
-                                    <div class="info">
-                                        <span class="badge-ao-vivo">LIVE</span>
-                                        <strong>PARTIDA ${id.substring(0,6)}</strong>
-                                    </div>
-                                    <div class="placar-feed">${placarAtual}</div>
-                                    <span class="hint">ANALISAR 3D</span>
-                                </div>
-                            `);
-                        }
+                        atualizarCard(id, placar, statusTexto, corBadge);
                     });
                 }
-
-                if (pacote.tipo === 'REST_AGENDA') {
-                    adicionarLinha(`<span style="color: #4da6ff;">📅 ${pacote.dados.length} jogos monitorados hoje.</span>`);
-                }
-            
-            } catch (erro) {
-                console.log("Erro ao processar dados", erro);
-            }
+            } catch (e) { console.error("Erro no JSON", e); }
         };
-
-        socket.onclose = () => {
-            adicionarLinha('<span style="color: #d29922;">⚠️ Conexão perdida. Tentando reconectar...</span>');
-            setTimeout(conectarMotor, 3000);
-        };
+        socket.onclose = () => setTimeout(conectarMotor, 3000);
     }
-
+    
     conectarMotor();
 </script>
-
 </body>
 </html>
