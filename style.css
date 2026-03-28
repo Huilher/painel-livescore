@@ -1,0 +1,119 @@
+/* Reset básico */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* O seu tema hacker/sombrio */
+body { 
+    font-family: 'Courier New', monospace; 
+    background-color: #0d1117; 
+    color: #58a6ff; 
+    padding: 20px; 
+}
+
+h2 { 
+    color: #f0f6fc; 
+    text-align: center; 
+    border-bottom: 1px solid #30363d; 
+    padding-bottom: 20px; 
+    margin-bottom: 30px; 
+}
+
+/* Estrutura de colunas */
+.container {
+    display: flex; 
+    gap: 20px; 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    height: 550px;
+}
+
+/* Coluna da Esquerda */
+.painel-mensagens {
+    flex: 0 0 35%;
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.painel-mensagens h3 {
+    color: #58a6ff;
+    font-size: 16px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 10px;
+}
+
+/* Coluna da Direita (Widget) */
+.painel-widget {
+    flex: 1;
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.painel-widget iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Badges */
+.badge {
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 11px;
+    margin-right: 8px;
+}
+.badge-rest { background-color: #238636; color: #fff; }
+.badge-mqtt { background-color: #d29922; color: #fff; }
+
+/* A SUA ANIMAÇÃO PARA OS LANCES */
+.lance { 
+    background: #0d1117; 
+    padding: 15px; 
+    margin-bottom: 10px; 
+    border-radius: 6px; 
+    border-left: 5px solid #238636;
+    color: #c9d1d9;
+    font-size: 13px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn { 
+    from { opacity: 0; transform: translateX(-20px); } 
+    to { opacity: 1; transform: translateX(0); } 
+}
+
+/* Efeito nas linhas do feed */
+.item-jogo {
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.item-jogo:hover {
+    background: rgba(77, 166, 255, 0.1);
+    transform: translateX(5px);
+    border-left: 3px solid #4da6ff;
+}
+
+.placar-feed {
+    background: #222;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.hint {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+}
