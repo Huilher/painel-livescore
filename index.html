@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Painel Live - Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,15 +15,15 @@
 <div class="container">
     <div class="painel-mensagens">
         <div class="busca-container">
-            <input type="text" id="busca-jogo" placeholder="🔍 Pesquisar ID do jogo..." onkeyup="filtrarJogos()">
+            <input type="text" id="busca-jogo" placeholder="🔍 Pesquisar time ou ID..." onkeyup="filtrarJogos()">
         </div>
 
         <div id="dados-tempo-real">
-            </div>
+        </div>
     </div>
 
     <div class="painel-widget">
-        <iframe id="widget-3d" src="https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=vjxm8gh51o0xr6o"></iframe>
+        <iframe id="widget-3d" title="Tracker 3D" src="https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=vjxm8gh51o0xr6o"></iframe>
     </div>
 </div>
 
@@ -52,7 +53,8 @@
         document.getElementById('widget-3d').src = `https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=${id}`;
     }
 
-    function atualizarCard(id, placar, statusTexto, corBadge) {
+    // Agora recebe timeCasa e timeFora
+    function atualizarCard(id, placar, statusTexto, corBadge, timeCasa, timeFora) {
         let div = document.getElementById(`jogo-${id}`);
         
         const conteudoCard = `
@@ -61,7 +63,7 @@
                     ${statusTexto.toUpperCase()}
                 </span>
                 <strong class="times-nome" style="display:block; margin:6px 0; color:#f0f6fc;">
-                    Time Casa VS Time Fora
+                    ${timeCasa} VS ${timeFora}
                 </strong>
                 <div class="placar-feed" style="font-size: 22px; font-weight: bold; color: #58a6ff;">
                     ${placar}
@@ -85,9 +87,10 @@
     }
 
     function conectarMotor() {
-        // COLOQUE A URL DO SEU NGROK AQUI ABAIXO
-        socket = new WebSocket('wss://desertic-vaughn-nonvirtuously.ngrok-free.dev');
-
+        // Sua URL do ngrok
+    socket = new WebSocket('wss://desertic-vaughn-nonvirtuously.ngrok-free.dev');
+      /* socket = new WebSocket('ws://localhost:8082'); */
+        
         socket.onmessage = (event) => {
             try {
                 const pacote = JSON.parse(event.data);
@@ -95,14 +98,22 @@
                 if (pacote.tipo === 'REST_LIVE') {
                     pacote.dados.forEach(jogo => {
                         const id = jogo.id;
-                        const placar = `${jogo.score?.[2]?.[0] ?? '0'} x ${jogo.score?.[3]?.[0] ?? '0'}`;
                         
-                        // Extrai status da posição [1]
-                        const statusReal = jogo.score && jogo.score[1] ? jogo.score[1] : 0;
+                        let placarCasa = '0';
+                        let placarFora = '0';
+                        if (jogo.score && jogo.score[2] && jogo.score[2][0] !== undefined) placarCasa = jogo.score[2][0];
+                        if (jogo.score && jogo.score[3] && jogo.score[3][0] !== undefined) placarFora = jogo.score[3][0];
+                        const placar = `${placarCasa} x ${placarFora}`;
+                        
+                        const statusReal = (jogo.score && jogo.score[1]) ? jogo.score[1] : 0;
                         const statusTexto = dicionarioStatus[statusReal] || "AO VIVO";
                         const corBadge = statusReal === 8 ? "#ff5858" : "#58a6ff";
 
-                        atualizarCard(id, placar, statusTexto, corBadge);
+                        // Puxa os nomes que o servidor enviou (ou usa o padrão se não achar)
+                        const timeCasa = jogo.timeCasa || "Time Casa";
+                        const timeFora = jogo.timeFora || "Time Fora";
+
+                        atualizarCard(id, placar, statusTexto, corBadge, timeCasa, timeFora);
                     });
                 }
             } catch (e) { console.error("Erro no JSON", e); }
