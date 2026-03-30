@@ -15,11 +15,11 @@
 <div class="container">
     <div class="painel-mensagens">
         <div class="busca-container">
-            <input type="text" id="busca-jogo" placeholder="🔍 Pesquisar time ou ID..." onkeyup="filtrarJogos()">
+            <input type="text" id="busca-jogo" placeholder="🔍 Buscar time ou Liga (Ex: Brasil)..." onkeyup="filtrarJogos()">
         </div>
 
         <div id="dados-tempo-real">
-        </div>
+            </div>
     </div>
 
     <div class="painel-widget">
@@ -32,13 +32,8 @@
     let socket;
     
     const dicionarioStatus = {
-        1: "Não Iniciado",
-        2: "1º Tempo",
-        3: "Intervalo",
-        4: "2º Tempo",
-        5: "Prorrogação",
-        7: "Pênaltis",
-        8: "Encerrado"
+        1: "Não Iniciado", 2: "1º Tempo", 3: "Intervalo", 4: "2º Tempo", 
+        5: "Prorrogação", 7: "Pênaltis", 8: "Encerrado"
     };
 
     function filtrarJogos() {
@@ -53,13 +48,15 @@
         document.getElementById('widget-3d').src = `https://widgets.thesports01.com/pt/3d/football?profile=7ph5yvyjwesjh0jv1804&uuid=${id}`;
     }
 
-    // Agora recebe timeCasa e timeFora
-    function atualizarCard(id, placar, statusTexto, corBadge, timeCasa, timeFora) {
+    function atualizarCard(id, placar, statusTexto, corBadge, timeCasa, timeFora, campeonato) {
         let div = document.getElementById(`jogo-${id}`);
         
         const conteudoCard = `
             <div class="item-jogo" onclick="carregarNoWidget('${id}')">
-                <span class="badge" style="color:${corBadge}; font-size:11px; font-weight:bold; letter-spacing: 0.5px;">
+                <div style="font-size: 10px; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">
+                    🏆 ${campeonato}
+                </div>
+                <span class="badge" style="color:${corBadge}; font-size:11px; font-weight:bold;">
                     ${statusTexto.toUpperCase()}
                 </span>
                 <strong class="times-nome" style="display:block; margin:6px 0; color:#f0f6fc;">
@@ -68,8 +65,8 @@
                 <div class="placar-feed" style="font-size: 22px; font-weight: bold; color: #58a6ff;">
                     ${placar}
                 </div>
-                <span class="hint" style="font-size: 11px; color: #8b949e; display:block; margin-top:4px;">
-                    ID: ${id.substring(0,8)}... | ANALISAR 3D
+                <span class="hint" style="font-size: 10px; color: #444d56; display:block; margin-top:4px;">
+                    ID: ${id.substring(0,8)}...
                 </span>
             </div>
         `;
@@ -87,36 +84,31 @@
     }
 
     function conectarMotor() {
-        // Sua URL do ngrok
-    socket = new WebSocket('wss://desertic-vaughn-nonvirtuously.ngrok-free.dev');
-      /* socket = new WebSocket('ws://localhost:8082'); */
+        // Alterne entre localhost (teste) e seu link ngrok/domínio (produção)
+        socket = new WebSocket('wss://desertic-vaughn-nonvirtuously.ngrok-free.dev');
         
         socket.onmessage = (event) => {
             try {
                 const pacote = JSON.parse(event.data);
-
                 if (pacote.tipo === 'REST_LIVE') {
                     pacote.dados.forEach(jogo => {
                         const id = jogo.id;
-                        
-                        let placarCasa = '0';
-                        let placarFora = '0';
-                        if (jogo.score && jogo.score[2] && jogo.score[2][0] !== undefined) placarCasa = jogo.score[2][0];
-                        if (jogo.score && jogo.score[3] && jogo.score[3][0] !== undefined) placarFora = jogo.score[3][0];
-                        const placar = `${placarCasa} x ${placarFora}`;
-                        
+                        const pCasa = (jogo.score && jogo.score[2]) ? jogo.score[2][0] : 0;
+                        const pFora = (jogo.score && jogo.score[3]) ? jogo.score[3][0] : 0;
                         const statusReal = (jogo.score && jogo.score[1]) ? jogo.score[1] : 0;
-                        const statusTexto = dicionarioStatus[statusReal] || "AO VIVO";
-                        const corBadge = statusReal === 8 ? "#ff5858" : "#58a6ff";
-
-                        // Puxa os nomes que o servidor enviou (ou usa o padrão se não achar)
-                        const timeCasa = jogo.timeCasa || "Time Casa";
-                        const timeFora = jogo.timeFora || "Time Fora";
-
-                        atualizarCard(id, placar, statusTexto, corBadge, timeCasa, timeFora);
+                        
+                        atualizarCard(
+                            id, 
+                            `${pCasa} x ${pFora}`, 
+                            dicionarioStatus[statusReal] || "AO VIVO",
+                            statusReal === 8 ? "#ff5858" : "#58a6ff",
+                            jogo.timeCasa,
+                            jogo.timeFora,
+                            jogo.campeonato
+                        );
                     });
                 }
-            } catch (e) { console.error("Erro no JSON", e); }
+            } catch (e) { console.error("Erro no processamento:", e); }
         };
         socket.onclose = () => setTimeout(conectarMotor, 3000);
     }
